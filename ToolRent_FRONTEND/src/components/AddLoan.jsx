@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useKeycloak } from "@react-keycloak/web";
+// import { useKeycloak } from "@react-keycloak/web"; // Ya no necesitamos el RUT del empleado para la URL
 import loanService from "../services/loan.service";
 import toolService from "../services/tool.service";
 import userService from "../services/user.service";
@@ -14,24 +14,23 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import SaveIcon from "@mui/icons-material/Save";
 
-
 const AddLoan = () => {
-  const { keycloak } = useKeycloak();
+  // const { keycloak } = useKeycloak(); // Opcional si necesitas validar roles
   const navigate = useNavigate();
-
-  const userId = keycloak?.tokenParsed?.sub; 
 
   const [tools, setTools] = useState([]);
   const [clients, setClients] = useState([]);
+  
+  // Estados del formulario
   const [selectedToolId, setSelectedToolId] = useState("");
-  const [selectedClient, setSelectedClient] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState(""); // Guardamos el ID para el Select
   const [startDate, setStartDate] = useState("");
   const [scheduledReturnDate, setScheduledReturnDate] = useState("");
 
   const [successMessage, setSuccessMessage] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  // Cargar herramientas y clientes
+  // 1. Cargar herramientas y clientes al montar
   useEffect(() => {
     toolService
       .getAvailable()
@@ -44,7 +43,9 @@ const AddLoan = () => {
       .catch((err) => console.error("Error cargando clientes", err));
   }, []);
 
-  // Obtener herramientas únicas por nombre
+  // Filtro visual: Herramientas únicas por nombre para el Dropdown
+  // (Aunque técnicamente deberías seleccionar una unidad específica ID, 
+  //  si tu UX es seleccionar por nombre, asegúrate de tomar el ID de la primera disponible)
   const uniqueTools = tools.reduce((acc, tool) => {
     if (!acc.find((t) => t.name === tool.name)) {
       acc.push(tool);
@@ -55,19 +56,28 @@ const AddLoan = () => {
   const saveLoan = (e) => {
     e.preventDefault();
 
-    const rut = keycloak?.tokenParsed?.rut; 
+    // 2. Obtener el RUT del Cliente seleccionado
+    // El backend necesita el RUT del cliente que pide el préstamo, no del empleado logueado.
+    const selectedClientObj = clients.find(c => c.id === selectedClientId);
+    
+    if (!selectedClientObj) {
+        alert("Error: No se ha seleccionado un cliente válido.");
+        return;
+    }
 
+    const clientRut = selectedClientObj.rut; 
+
+    // 3. Preparar datos del cuerpo (Solo fechas, el resto va en la URL)
     const loanData = {
-      tool: { id: selectedToolId },
-      client: { id: selectedClient },
-      startDate: startDate,              
-      scheduledReturnDate: scheduledReturnDate, 
-      createdLoan: new Date().toISOString(), 
-      createdBy: { rut: rut },
+      startDate: startDate,
+      scheduledReturnDate: scheduledReturnDate
+      // El backend se encarga de 'createdLoan' y de asociar IDs
     };
 
+    // 4. Llamada al Servicio Actualizado
+    // Firma: createLoan(data, rutCliente, toolId)
     loanService
-      .createLoan(loanData, rut)
+      .createLoan(loanData, clientRut, selectedToolId)
       .then(() => {
         setSuccessMessage("Préstamo creado exitosamente ✅");
         setOpenSnackbar(true);
@@ -75,7 +85,9 @@ const AddLoan = () => {
       })
       .catch((err) => {
         console.error("Error al crear préstamo ❌", err);
-        alert("Error al crear préstamo: " + err.response?.data || err.message);
+        // Manejo de error seguro por si err.response no existe
+        const errorMsg = err.response?.data?.message || err.response?.data || err.message || "Error desconocido";
+        alert("Error al crear préstamo: " + errorMsg);
       });
   };
 
@@ -105,18 +117,20 @@ const AddLoan = () => {
           Registrar Préstamo
         </Typography>
 
-        {/* Select de Herramienta con nombres únicos */}
+        {/* Select de Herramienta */}
         <FormControl fullWidth>
           <TextField
             select
-            label="Herramienta"
+            label="Herramienta (ID - Nombre)"
             value={selectedToolId}
             onChange={(e) => setSelectedToolId(e.target.value)}
             required
           >
-            {uniqueTools.map((tool) => (
+            {/* Nota: Aquí muestro todas las disponibles. Si usas uniqueTools, 
+                asegúrate de que el ID corresponda a una unidad real disponible */}
+            {tools.map((tool) => (
               <MenuItem key={tool.id} value={tool.id}>
-                {tool.name}
+                {tool.id} - {tool.name} ({tool.brand})
               </MenuItem>
             ))}
           </TextField>
@@ -127,13 +141,13 @@ const AddLoan = () => {
           <TextField
             select
             label="Cliente"
-            value={selectedClient}
-            onChange={(e) => setSelectedClient(e.target.value)}
+            value={selectedClientId}
+            onChange={(e) => setSelectedClientId(e.target.value)}
             required
           >
             {clients.map((client) => (
               <MenuItem key={client.id} value={client.id}>
-                {client.username}
+                {client.rut} - {client.name} {client.lastName}
               </MenuItem>
             ))}
           </TextField>
@@ -169,7 +183,7 @@ const AddLoan = () => {
           sx={{ backgroundColor: "#1b5e20", "&:hover": { backgroundColor: "#2e7d32" } }}
           startIcon={<SaveIcon />}
         >
-          Guardar
+          Guardar Préstamo
         </Button>
       </Box>
 
