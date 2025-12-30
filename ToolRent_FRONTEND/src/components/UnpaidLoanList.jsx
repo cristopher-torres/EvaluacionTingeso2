@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { getUnpaidLoans, updateFinePaid } from "../services/loan.service";
+// Usamos ReportService para leer la lista y LoanService para ejecutar la acción de pago
+import { getUnpaidLoans } from "../services/report.service"; 
+import { updateFinePaid } from "../services/loan.service";
+
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -13,7 +16,7 @@ import Box from "@mui/material/Box";
 const UnpaidLoansPage = () => {
   const [loans, setLoans] = useState([]);
 
-  // Traer préstamos no pagados
+  // Traer préstamos no pagados (Reporte Financiero)
   const fetchUnpaidLoans = () => {
     getUnpaidLoans()
       .then(res => setLoans(res.data))
@@ -24,8 +27,10 @@ const UnpaidLoansPage = () => {
     fetchUnpaidLoans();
   }, []);
 
-  // Marcar multa como pagada
+  // Marcar multa como pagada (Acción Operativa)
   const handleMarkPaid = (loanId) => {
+    if(!window.confirm("¿Confirmar que el cliente pagó la multa total?")) return;
+
     updateFinePaid(loanId, true)
       .then(() => {
         // Actualizar lista
@@ -45,9 +50,8 @@ const UnpaidLoansPage = () => {
               <TableCell>ID Préstamo</TableCell>
               <TableCell>ID Usuario</TableCell>
               <TableCell>RUT</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Teléfono</TableCell>
-              <TableCell>Deuda</TableCell>
+              {/* Eliminamos Email y Teléfono porque M2 no tiene esos datos */}
+              <TableCell>Deuda Total</TableCell>
               <TableCell>Acción</TableCell>
             </TableRow>
           </TableHead>
@@ -55,10 +59,11 @@ const UnpaidLoansPage = () => {
             {loans.map((loan) => (
               <TableRow key={loan.id}>
                 <TableCell>{loan.id}</TableCell>
-                <TableCell>{loan.client?.id}</TableCell>
-                <TableCell>{loan.client?.rut}</TableCell>
-                <TableCell>{loan.client?.email}</TableCell>
-                <TableCell>{loan.client?.phoneNumber}</TableCell>
+                
+                {/* CAMBIO: Propiedades planas */}
+                <TableCell>{loan.clientId}</TableCell>
+                <TableCell>{loan.clientRut}</TableCell>
+                
                 <TableCell>${loan.fineTotal}</TableCell>
                 <TableCell>
                   <Button
@@ -66,14 +71,14 @@ const UnpaidLoansPage = () => {
                     sx={{ backgroundColor: "#1b5e20", "&:hover": { backgroundColor: "#145a16" } }}
                     onClick={() => handleMarkPaid(loan.id)}
                   >
-                    Pago
+                    Marcar Pagado
                   </Button>
                 </TableCell>
               </TableRow>
             ))}
             {loans.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={5} align="center">
                   No hay préstamos con multas pendientes.
                 </TableCell>
               </TableRow>

@@ -1,7 +1,26 @@
+server:
+  port: 0 # Puerto aleatorio
+
 spring:
   application:
     name: M1
-  cloud:
-    config:
-      enabled: true
-      uri: http://config-server:8081
+  datasource:
+    url: jdbc:mysql://localhost:3306/m1?createDatabaseIfNotExist=true&serverTimezone=UTC
+    username: ADMIN      # CAMBIA POR TU USUARIO
+    password: cris123  # CAMBIA POR TU PASSWORD
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    show-sql: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    preferIpAddress: true
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}

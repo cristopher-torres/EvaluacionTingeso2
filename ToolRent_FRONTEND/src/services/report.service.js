@@ -21,7 +21,7 @@ export const getTopToolsRanking = (startDate, endDate) => {
 };
 
 export const getUnpaidLoans = () => {
-    return httpClient.get("/api/reports/financial/unpaid");
+    return httpClient.get("/api/reports/unpaid");
 }
 
 export default { 

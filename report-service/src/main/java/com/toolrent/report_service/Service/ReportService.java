@@ -15,8 +15,7 @@ public class ReportService {
     @Autowired
     private RestTemplate restTemplate;
 
-    // URL de M2 (Préstamos) que contiene la data transaccional
-    // Ajusta el host si usas Eureka (ej: "http://loan-service/api/loans")
+
     private final String M2_URL = "http://M2/api/loans";
 
     // RF6.1: Listar préstamos activos y su estado [cite: 115]
@@ -59,6 +58,18 @@ public class ReportService {
             return ranking != null ? Arrays.asList(ranking) : Collections.emptyList();
         } catch (Exception e) {
             System.err.println("Error obteniendo ranking de herramientas: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    public List<Object> getUnpaidLoansReport() {
+        try {
+            String url = M2_URL + "/unpaid";
+
+            Object[] unpaidLoans = restTemplate.getForObject(url, Object[].class);
+            return unpaidLoans != null ? Arrays.asList(unpaidLoans) : Collections.emptyList();
+        } catch (Exception e) {
+            System.err.println("Error obteniendo reporte de deuda impaga: " + e.getMessage());
             return Collections.emptyList();
         }
     }

@@ -76,7 +76,7 @@ public class LoanService {
 
         long days = ChronoUnit.DAYS.between(loan.getStartDate(), loan.getScheduledReturnDate());
         if (days <= 0) days = 1;
-        loan.setLoanPrice(days * tool.getDailyPrice());
+        loan.setLoanPrice(days * tool.getDailyRate());
 
         LoanEntity savedLoan = loanRepository.save(loan);
 

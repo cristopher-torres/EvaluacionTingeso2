@@ -180,7 +180,7 @@ public class ToolService {
             movement.put("quantity", quantity);
             movement.put("userRut", userRut);
 
-            restTemplate.postForObject(KARDEX_SERVICE_URL, movement, Object.class);
+            restTemplate.postForObject(KARDEX_SERVICE_URL + "/create", movement, Object.class);
         } catch (Exception e) {
             System.err.println("Error al comunicar con Microservicio Kardex: " + e.getMessage());
         }

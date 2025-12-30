@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import toolService from "../services/tool.service";
+import rateService from "../services/rate.service"; // IMPORTACIÓN NUEVA
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
@@ -16,11 +17,14 @@ const AddEditTool = () => {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [quantity, setQuantity] = useState("");
+  
+  // Estados Monetarios (Responsabilidad de M4)
   const [replacementValue, setReplacementValue] = useState("");
   const [dailyRate, setDailyRate] = useState("");
   const [dailyLateRate, setDailyLateRate] = useState("");
-  const [repairValue, setRepairValue] = useState("");
-  const [status, setStatus] = useState("DISPONIBLE"); // Valor por defecto
+  const [repairValue, setRepairValue] = useState(""); // Este campo es opcional en M4 según diseño, pero lo enviamos
+  
+  const [status, setStatus] = useState("DISPONIBLE");
 
   const { id } = useParams();
   const [titleToolForm, setTitleToolForm] = useState("");
@@ -30,53 +34,71 @@ const AddEditTool = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const { keycloak } = useKeycloak();
 
-  const saveTool = (e) => {
+  const saveTool = async (e) => {
     e.preventDefault();
 
-    const rut = keycloak?.tokenParsed?.rut;
+    const rut = keycloak?.tokenParsed?.rut || "admin"; // Fallback por seguridad
 
-    const tool = {
+    // Objeto base para M1
+    const toolDataM1 = {
+      id,
       name,
       category,
+      status,
+      // M1 recibe los precios en el objeto, pero M4 es el que gobierna la actualización de tarifas
       replacementValue: Number(replacementValue),
       dailyRate: Number(dailyRate),
       dailyLateRate: Number(dailyLateRate),
       repairValue: Number(repairValue),
-      id,
-      status
     };
 
-    if (id) {
-      toolService
-        .update(tool, rut)
-        .then(() => {
-          setSuccessMessage("Herramienta actualizada exitosamente ✅");
-          setOpenSnackbar(true);
-          setTimeout(() => navigate("/inventario"), 3000);
-        })
-        .catch((error) => console.error("Error al actualizar herramienta ❌", error));
-    } else {
-      toolService
-        .create(tool, Number(quantity), rut)
-        .then(() => {
-          setSuccessMessage("Herramienta creada exitosamente ✅");
-          setOpenSnackbar(true);
-          setTimeout(() => navigate("/inventario"), 1500);
-        })
-        .catch((error) => console.error("Error al crear herramienta ❌", error));
+    try {
+      if (id) {
+        // --- MODO EDICIÓN (Separación de responsabilidades) ---
+        
+        // 1. Actualizar Datos de Inventario (M1)
+        // Esto actualiza nombre, categoría, estado.
+        await toolService.update(toolDataM1, rut);
+
+        // 2. Actualizar Tarifas (M4) - CUMPLIMIENTO ÉPICA 4
+        // M4 recibe la orden y se comunica internamente con M1 para ajustar los precios
+        await rateService.updateToolRate(
+            id, 
+            Number(dailyRate), 
+            Number(dailyLateRate), 
+            Number(replacementValue), 
+            rut
+        );
+
+        setSuccessMessage("Herramienta y tarifas actualizadas exitosamente ✅");
+        setOpenSnackbar(true);
+        setTimeout(() => navigate("/inventario"), 2500);
+
+      } else {
+        // --- MODO CREACIÓN (Todo va a M1 inicialmente) ---
+        await toolService.create(toolDataM1, Number(quantity), rut);
+        
+        setSuccessMessage("Herramienta creada exitosamente ✅");
+        setOpenSnackbar(true);
+        setTimeout(() => navigate("/inventario"), 1500);
+      }
+    } catch (error) {
+      console.error("Error al guardar herramienta ❌", error);
+      alert("Ocurrió un error al guardar. Revise la consola.");
     }
   };
 
   useEffect(() => {
     if (id) {
       setTitleToolForm("Editar Herramienta");
+      // Cargamos los datos actuales desde M1 (Inventario tiene la data maestra)
       toolService
         .get(id)
         .then((response) => {
           const tool = response.data;
           setName(tool.name);
           setCategory(tool.category);
-          setQuantity(tool.stock);
+          setQuantity(tool.stock || 0); // M1 a veces devuelve 'stock' o se calcula
           setReplacementValue(tool.replacementValue);
           setDailyRate(tool.dailyRate);
           setDailyLateRate(tool.dailyLateRate);
@@ -158,17 +180,10 @@ const AddEditTool = () => {
           </FormControl>
         )}
 
-        <FormControl fullWidth>
-          <TextField
-            id="replacementValue"
-            label="Valor de Reposición"
-            type="number"
-            value={replacementValue}
-            variant="outlined"
-            onChange={(e) => setReplacementValue(e.target.value)}
-            required
-          />
-        </FormControl>
+        {/* Sección de Tarifas (Gestionada por M4 en Edición) */}
+        <Typography variant="subtitle2" color="primary" sx={{mt: 1}}>
+            Configuración de Tarifas (M4)
+        </Typography>
 
         <FormControl fullWidth>
           <TextField
@@ -178,6 +193,7 @@ const AddEditTool = () => {
             value={dailyRate}
             variant="outlined"
             onChange={(e) => setDailyRate(e.target.value)}
+            required
           />
         </FormControl>
 
@@ -189,13 +205,26 @@ const AddEditTool = () => {
             value={dailyLateRate}
             variant="outlined"
             onChange={(e) => setDailyLateRate(e.target.value)}
+            required
           />
+        </FormControl>
+
+        <FormControl fullWidth>
+            <TextField
+                id="replacementValue"
+                label="Valor de Reposición"
+                type="number"
+                value={replacementValue}
+                variant="outlined"
+                onChange={(e) => setReplacementValue(e.target.value)}
+                required
+            />
         </FormControl>
 
         <FormControl fullWidth>
           <TextField
             id="repairValue"
-            label="Costo de Reparación"
+            label="Costo de Reparación Estándar"
             type="number"
             value={repairValue}
             variant="outlined"
@@ -204,10 +233,10 @@ const AddEditTool = () => {
         </FormControl>
 
         {id && (
-          <FormControl fullWidth>
+          <FormControl fullWidth sx={{mt: 2}}>
             <TextField
               id="status"
-              label="Estado"
+              label="Estado (Inventario)"
               value={status}
               select
               variant="outlined"
@@ -228,10 +257,11 @@ const AddEditTool = () => {
           sx={{
             backgroundColor: "#1b5e20",
             "&:hover": { backgroundColor: "#2e7d32" },
+            mt: 2
           }}
           startIcon={<SaveIcon />}
         >
-          Guardar
+          Guardar Cambios
         </Button>
 
         <Typography variant="body2" align="center">
@@ -239,7 +269,6 @@ const AddEditTool = () => {
         </Typography>
       </Box>
 
-      {/* Snackbar de éxito */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={2000}

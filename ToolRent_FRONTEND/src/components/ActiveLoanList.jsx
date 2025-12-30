@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-// 1. IMPORTAMOS LO OPERACIONAL DE LOAN.SERVICE
-import { getActiveLoans, returnLoan, updateFinePaid } from "../services/loan.service";
-// 2. IMPORTAMOS LO ANALÍTICO (FILTROS) DE REPORT.SERVICE
-import { getActiveLoansReport } from "../services/report.service";
+// Mantenemos solo las acciones de escritura (Devolución/Multa) en el servicio de Préstamos
+import { returnLoan, updateFinePaid } from "../services/loan.service";
+// Importamos el servicio de Reportes para la lectura de datos (M6)
+import reportService from "../services/report.service";
 
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -34,25 +34,29 @@ const ActiveLoanList = () => {
 
   const [openReceiptDialog, setOpenReceiptDialog] = useState(false);
   const [loanReceipt, setLoanReceipt] = useState(null);
-  
   const { keycloak } = useKeycloak();
-  const rutEmployee = keycloak?.tokenParsed?.rut; 
+  const rut = keycloak?.tokenParsed?.rut;
 
-  // CASO 1: Ver todos (Operacional -> Usa M2 LoanService)
-  const fetchAllLoans = () => {
-    getActiveLoans().then(res => setLoans(res.data));
+  // Función unificada para cargar préstamos
+  // Acepta argumentos explícitos para no depender del estado asíncrono de React
+  const fetchLoans = (start, end) => {
+    reportService.getActiveLoansReport(start, end)
+      .then(res => setLoans(res.data))
+      .catch(err => console.error("Error cargando préstamos:", err));
   };
 
-  // CASO 2: Filtrar por fechas (Reporte -> Usa M6 ReportService)
-  const fetchLoansByDate = () => {
-    if (!startDate || !endDate) return;
-    // Usamos el servicio de reportes que creamos en el paso anterior
-    getActiveLoansReport(startDate, endDate).then(res => setLoans(res.data));
-  };
-
+  // Carga inicial (envía comillas vacías)
   useEffect(() => {
-    fetchAllLoans();
+    fetchLoans("", "");
   }, []);
+
+  const handleFilter = () => {
+    if (!startDate || !endDate) {
+      alert("Seleccione ambas fechas para filtrar");
+      return;
+    }
+    fetchLoans(startDate, endDate);
+  };
 
   const handleOpenDialog = (loan) => {
     setSelectedLoan(loan);
@@ -69,24 +73,29 @@ const ActiveLoanList = () => {
   const handleReturn = () => {
     if (!selectedLoan) return;
 
-    returnLoan(selectedLoan.id, rutEmployee, damaged, irreparable).then(res => {
+    returnLoan(selectedLoan.id, rut, damaged, irreparable).then(res => {
       setLoanReceipt(res.data);
       setOpenReceiptDialog(true);
       setOpenDialog(false);
-    }).catch(err => {
-      console.error("Error al devolver", err);
-      alert("Error al procesar la devolución");
-    });
+    }).catch(err => console.error("Error al devolver:", err));
   };
 
   const handleFinePaid = (paid) => {
     if (!loanReceipt || !loanReceipt.id) return;
 
-    updateFinePaid(loanReceipt.id, paid).then(res => {
-      setLoanReceipt(res.data);
+    updateFinePaid(loanReceipt.id, paid).then(updatedLoan => {
+      setLoanReceipt(prev => ({
+        ...prev,
+        finePaid: paid
+      }));
+
       setOpenReceiptDialog(false);
       setSelectedLoan(null);
-      fetchAllLoans(); 
+      
+      // Al cerrar el recibo, recargamos la lista manteniendo el filtro actual
+      // (Si el usuario limpió filtros, startDate ya será "", si no, usará la fecha seleccionada)
+      fetchLoans(startDate, endDate);
+      
     }).catch(error => {
       console.error('Error actualizando estado de multa:', error);
     });
@@ -121,14 +130,22 @@ const ActiveLoanList = () => {
         <Button
           variant="contained"
           sx={{ backgroundColor: "#1b5e20", "&:hover": { backgroundColor: "#145a16" } }}
-          onClick={fetchLoansByDate}
+          onClick={handleFilter}
         >
           Filtrar por fechas
         </Button>
+        
+        {/* AQUÍ ESTÁ EL BOTÓN CON LA LÓGICA QUE PEDISTE */}
         <Button
           variant="contained"
           sx={{ backgroundColor: "#1b5e20", "&:hover": { backgroundColor: "#145a16" } }}
-          onClick={fetchAllLoans}
+          onClick={() => {
+              // 1. Limpiamos visualmente los inputs
+              setStartDate("");
+              setEndDate("");
+              // 2. Forzamos la carga con comillas vacías inmediatamente
+              fetchLoans("", "");
+          }}
         >
           Ver todos
         </Button>
@@ -141,7 +158,7 @@ const ActiveLoanList = () => {
             <TableRow>
               <TableCell>ID</TableCell>
               <TableCell>Herramienta</TableCell>
-              <TableCell>Cliente (RUT)</TableCell>
+              <TableCell>Cliente (Rut)</TableCell>
               <TableCell>Inicio</TableCell>
               <TableCell>Fecha límite</TableCell>
               <TableCell>Estado</TableCell>
@@ -152,9 +169,8 @@ const ActiveLoanList = () => {
             {loans.map(loan => (
               <TableRow key={loan.id}>
                 <TableCell>{loan.id}</TableCell>
-                {/* Ojo: Usamos las propiedades planas del JSON (sin objetos anidados) */}
-                <TableCell>{loan.toolName}</TableCell> 
-                <TableCell>{loan.clientRut}</TableCell>
+                <TableCell>{loan.toolName || loan.tool?.name}</TableCell>
+                <TableCell>{loan.clientRut || loan.client?.rut}</TableCell>
                 <TableCell>{formatDate(loan.startDate)}</TableCell>
                 <TableCell>{formatDate(loan.scheduledReturnDate)}</TableCell>
                 <TableCell>{loan.loanStatus}</TableCell>
@@ -204,29 +220,27 @@ const ActiveLoanList = () => {
         <DialogContent>
           {loanReceipt && (
             <div style={{ minWidth: "300px" }}>
-              <p><strong>Cliente:</strong> {loanReceipt.clientRut}</p>
-              <p><strong>Herramienta:</strong> {loanReceipt.toolName}</p>
-              
+              <p><strong>Cliente:</strong> {loanReceipt.client?.rut}</p>
+              <p><strong>Herramienta:</strong> {loanReceipt.tool?.name}</p>
               <p><strong>Precio préstamo:</strong> ${loanReceipt.loanPrice || '0'}</p>
               <p><strong>Multa por atraso:</strong> ${loanReceipt.fine || '0'}</p>
               <p><strong>Daño:</strong> ${loanReceipt.damagePrice || '0'}</p>
-              <hr/>
-              <p><strong>Total multas y daños:</strong> ${loanReceipt.fineTotal || '0'}</p>
-              <p><strong>Total final a pagar:</strong> ${loanReceipt.total || '0'}</p>
+              <p><strong>Total multa + daño:</strong> ${loanReceipt.fineTotal || '0'}</p>
+              <p><strong>Total a pagar:</strong> ${loanReceipt.total || '0'}</p>
 
-              {loanReceipt.fineTotal > 0 && !loanReceipt.finePaid ? (
+              {loanReceipt.fineTotal > 0 ? (
                 <Box display="flex" flexDirection="column" alignItems="center" mt={2}>
-                  <p style={{color: 'red', fontWeight: 'bold'}}>¿El cliente paga la multa ahora?</p>
+                  <p>¿Pagó la multa?</p>
                   <Box display="flex" gap={2} justifyContent="center" mt={2}>
                     <Button
                       sx={{ backgroundColor: "#1b5e20", "&:hover": { backgroundColor: "#145a16" } }}
                       variant="contained"
                       onClick={() => handleFinePaid(true)}
                     >
-                      Sí, pagar
+                      Sí, pagó
                     </Button>
                     <Button variant="contained" color="error" onClick={() => handleFinePaid(false)}>
-                      No pagar por ahora
+                      No pagó
                     </Button>
                   </Box>
                 </Box>
@@ -238,7 +252,8 @@ const ActiveLoanList = () => {
                     onClick={() => {
                       setOpenReceiptDialog(false);
                       setSelectedLoan(null);
-                      fetchAllLoans();
+                      // Recargamos usando el estado actual (que debería estar actualizado si venimos de un flujo normal)
+                      fetchLoans(startDate, endDate);
                     }}
                   >
                     Cerrar

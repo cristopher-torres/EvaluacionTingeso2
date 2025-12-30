@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/reports")
-@CrossOrigin("*")
 public class ReportController {
 
     @Autowired
@@ -50,5 +49,10 @@ public class ReportController {
     ) {
         // Aquí permitimos nulos para que el servicio decida si trae el histórico completo
         return ResponseEntity.ok(reportService.getTopToolsRanking(startDate, endDate));
+    }
+
+    @GetMapping("/unpaid")
+    public ResponseEntity<List<Object>> getUnpaidLoans() {
+        return ResponseEntity.ok(reportService.getUnpaidLoansReport());
     }
 }

@@ -14,7 +14,7 @@ public class Tool {
     private String brand;
 
     // Precios necesarios para la lógica del préstamo
-    private double dailyPrice;       // Precio por día de arriendo
+    private double dailyRate;     // Precio por día de arriendo
     private double dailyLateRate;    // Multa por día de atraso
     private double replacementValue; // Costo si la pierden/rompen total
     private double repairValue;      // Costo si la dañan (reparable)

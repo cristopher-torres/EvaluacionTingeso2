@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { getOverdueLoans, getOverdueLoansByDate } from "../services/loan.service";
+// 1. CAMBIO: Usamos report.service en lugar de loan.service
+import { getOverdueLoans } from "../services/report.service";
+
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -16,22 +18,27 @@ const ReportLateClient = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const fetchAllLateLoans = () => {
-    getOverdueLoans().then(res => setLoans(res.data));
-  };
-
-  const fetchLateLoansByDate = () => {
-    if (!startDate || !endDate) return;
-    getOverdueLoansByDate(startDate, endDate).then(res => setLoans(res.data));
+  const fetchLateLoans = () => {
+    // 2. CAMBIO: El nuevo servicio maneja la lógica de fechas internamente
+    // Si startDate/endDate son vacíos, el backend devuelve todos.
+    getOverdueLoans(startDate, endDate)
+        .then(res => setLoans(res.data))
+        .catch(err => console.error("Error al cargar reporte", err));
   };
 
   useEffect(() => {
-    fetchAllLateLoans();
-  }, []);
+    fetchLateLoans();
+  }, []); // Carga inicial
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const [year, month, day] = dateString.split("-");
+    return `${day}/${month}/${year}`;
+  };
 
   return (
     <div>
-      <h2>Préstamos Atrasados</h2>
+      <h2>Reporte de Clientes Atrasados</h2>
 
       <Box display="flex" gap={2} mb={2}>
         <TextField
@@ -51,16 +58,9 @@ const ReportLateClient = () => {
         <Button
           variant="contained"
           sx={{ backgroundColor: "#1b5e20", "&:hover": { backgroundColor: "#145a16" } }}
-          onClick={fetchLateLoansByDate}
+          onClick={fetchLateLoans}
         >
-          Filtrar por fechas
-        </Button>
-        <Button
-          variant="contained"
-          sx={{ backgroundColor: "#1b5e20", "&:hover": { backgroundColor: "#145a16" } }}
-          onClick={fetchAllLateLoans}
-        >
-          Ver todos
+          Filtrar / Actualizar
         </Button>
       </Box>
 
@@ -68,27 +68,42 @@ const ReportLateClient = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID Cliente</TableCell>
-              <TableCell>Nombre</TableCell>
-              <TableCell>Correo</TableCell>
-              <TableCell>Teléfono</TableCell>
               <TableCell>ID Préstamo</TableCell>
+              <TableCell>RUT Cliente</TableCell>
+              <TableCell>Herramienta</TableCell>
+              <TableCell>Fecha Pactada</TableCell>
+              <TableCell>Días de Atraso (aprox)</TableCell>
+              <TableCell>Multa Acumulada</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {loans.map(loan => (
-              <TableRow key={loan.id}>
-                <TableCell>{loan.client.id}</TableCell>
-                <TableCell>{loan.client.name}</TableCell>
-                <TableCell>{loan.client.email}</TableCell>
-                <TableCell>{loan.client.phoneNumber}</TableCell>
-                <TableCell>{loan.id}</TableCell>
-              </TableRow>
-            ))}
+            {loans.map(loan => {
+                // Cálculo simple de días de atraso para visualización
+                const today = new Date();
+                const scheduled = new Date(loan.scheduledReturnDate);
+                const diffTime = Math.abs(today - scheduled);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+                return (
+                  <TableRow key={loan.id}>
+                    <TableCell>{loan.id}</TableCell>
+                    
+                    {/* CAMBIO CRÍTICO: Usamos clientRut porque 'loan.client' es null */}
+                    <TableCell>{loan.clientRut}</TableCell> 
+                    
+                    <TableCell>{loan.toolName}</TableCell>
+                    <TableCell>{formatDate(loan.scheduledReturnDate)}</TableCell>
+                    
+                    <TableCell>{diffDays} días</TableCell>
+                    <TableCell>${loan.fine}</TableCell>
+                  </TableRow>
+                );
+            })}
+            
             {loans.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} align="center">
-                  No hay clientes con atrasos en devolucion de prestamos.
+                  No hay clientes con atrasos en el rango seleccionado.
                 </TableCell>
               </TableRow>
             )}

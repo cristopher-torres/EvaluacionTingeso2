@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { getTopToolsByDate, getTopToolsAllTime } from "../services/loan.service";
+// 1. CAMBIO: Importamos desde report.service (M6)
+import { getTopToolsRanking } from "../services/report.service";
+
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -16,17 +18,17 @@ const ToolListRanking = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const fetchAllTools = () => {
-    getTopToolsAllTime().then(res => setTools(res.data));
-  };
-
-  const fetchToolsByDate = () => {
-    if (!startDate || !endDate) return;
-    getTopToolsByDate(startDate, endDate).then(res => setTools(res.data));
+  // 2. CAMBIO: Una sola función para buscar (con o sin fechas)
+  const fetchRanking = () => {
+    // Llamamos al servicio de Reportes. Si las fechas están vacías, el backend de M6
+    // (o el endpoint de M2 al que llama) se encarga de traer el histórico.
+    getTopToolsRanking(startDate, endDate)
+        .then(res => setTools(res.data))
+        .catch(err => console.error("Error al obtener ranking", err));
   };
 
   useEffect(() => {
-    fetchAllTools();
+    fetchRanking();
   }, []);
 
   return (
@@ -53,16 +55,24 @@ const ToolListRanking = () => {
         <Button
           variant="contained"
           sx={{ backgroundColor: "#1b5e20", "&:hover": { backgroundColor: "#145a16" } }}
-          onClick={fetchToolsByDate}
+          onClick={fetchRanking}
         >
           Filtrar por fechas
         </Button>
         <Button
           variant="contained"
           sx={{ backgroundColor: "#1b5e20", "&:hover": { backgroundColor: "#145a16" } }}
-          onClick={fetchAllTools}
+          onClick={() => {
+              // Limpiamos fechas y recargamos
+              setStartDate("");
+              setEndDate("");
+              // Nota: Como setState es asíncrono, llamamos a getTopToolsRanking sin argumentos
+              // o esperamos al useEffect si usáramos dependencia. 
+              // Para simplicidad, llamamos directo pasando nulls:
+              getTopToolsRanking(null, null).then(res => setTools(res.data));
+          }}
         >
-          Ver todos
+          Ver histórico total
         </Button>
       </Box>
 
@@ -77,10 +87,19 @@ const ToolListRanking = () => {
           <TableBody>
             {tools.map((tool, index) => (
               <TableRow key={index}>
+                {/* El backend devuelve una lista de Arrays de Objetos (JPQL default):
+                   [ "Taladro Percutor", 5 ]
+                   Por eso accedemos con índices [0] y [1].
+                */}
                 <TableCell>{tool[0]}</TableCell> 
                 <TableCell>{tool[1]}</TableCell> 
               </TableRow>
             ))}
+            {tools.length === 0 && (
+                <TableRow>
+                    <TableCell colSpan={2} align="center">No hay datos para mostrar</TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>

@@ -23,28 +23,37 @@ const LoanList = () => {
 
   return (
     <div>
-      <h2>Listado de Préstamos</h2>
+      <h2>Listado Histórico de Préstamos</h2>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
               <TableCell>Herramienta</TableCell>
-              <TableCell>Cliente</TableCell>
+              <TableCell>Cliente (RUT)</TableCell>
               <TableCell>Inicio</TableCell>
               <TableCell>Fecha límite</TableCell>
-              <TableCell>Devuelto</TableCell>
+              <TableCell>Fecha Devolución</TableCell>
+              <TableCell>Estado</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {loans.map(loan => (
               <TableRow key={loan.id}>
                 <TableCell>{loan.id}</TableCell>
-                <TableCell>{loan.tool?.id}</TableCell>
-                <TableCell>{loan.client?.id}</TableCell>
+                
+                {/* CAMBIO: Usamos las propiedades planas */}
+                <TableCell>{loan.toolName}</TableCell> 
+                <TableCell>{loan.clientRut}</TableCell>
+
                 <TableCell>{formatDate(loan.startDate)}</TableCell>
                 <TableCell>{formatDate(loan.scheduledReturnDate)}</TableCell>
-                <TableCell>{loan.delivered ? "Sí" : "No"}</TableCell>
+                
+                {/* Agregué Fecha real de devolución si existe */}
+                <TableCell>{loan.returnDate ? formatDate(loan.returnDate) : "-"}</TableCell>
+                
+                {/* Estado es más descriptivo que "Devuelto: Si/No" */}
+                <TableCell>{loan.loanStatus}</TableCell>
               </TableRow>
             ))}
           </TableBody>
