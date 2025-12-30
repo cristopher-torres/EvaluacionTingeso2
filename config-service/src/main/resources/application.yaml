@@ -9,4 +9,4 @@ spring:
           uri: https://github.com/cristopher-torres/EvaluacionTingeso2
           search-paths: config-data
   application:
-    name: config-service
+    name: config-server

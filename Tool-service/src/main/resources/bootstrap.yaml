@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: M1
+  cloud:
+    config:
+      enabled: true
+      uri: http://config-server:8081
