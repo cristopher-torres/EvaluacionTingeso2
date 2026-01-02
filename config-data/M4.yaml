@@ -2,7 +2,7 @@ M2:
   yaml:
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/ms1?createDatabaseIfNotExist=true&serverTimezone=UTC
+    url: jdbc:mysql://mysql-db:3306/ms4_db?allowPublicKeyRetrieval=true&useSSL=false
     username: ADMIN
     password: cris123
     driver-class-name: com.mysql.cj.jdbc.Driver

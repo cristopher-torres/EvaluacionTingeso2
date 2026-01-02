@@ -17,30 +17,16 @@ spec:
       containers:
       - name: m7
         image: quay.io/keycloak/keycloak:25.0
-        args: ["start-dev"]
+        args: ["start-dev"] # Modo desarrollo (Habilita HTTP y desactiva caché estricta)
         env:
-        - name: SERVER_PORT
-          value: "0"  # Puerto dinámico
-        - name: PORT
-          value: "0"  # Puerto dinámico
-        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
-          value: http://eureka-server:8761/eureka
-        - name: SPRING_CLOUD_CONFIG_URI
-          value: http://config-server:8081
-        - name: POD_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
-        - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
-          value: "true"
-
-        # --- CONFIGURACIÓN REAL DE KEYCLOAK ---
+        # --- CONFIGURACIÓN DE KEYCLOAK ---
+        # Usuario Admin
         - name: KEYCLOAK_ADMIN
           value: "cristingeso"
         - name: KEYCLOAK_ADMIN_PASSWORD
           value: "rodrigo12"
         
-        # Conexión a Base de Datos (Postgres)
+        # Conexión a Base de Datos
         - name: KC_DB
           value: "postgres"
         - name: KC_DB_URL
@@ -56,12 +42,12 @@ spec:
               name: postgres-secret
               key: password
 
-        # Configuración de Red
+        # Configuración HTTP (Importante para que no pida HTTPS)
         - name: KC_HOSTNAME_STRICT
           value: "false"
         - name: KC_HTTP_ENABLED
           value: "true"
-          
+        
       restartPolicy: Always
 
 ---
@@ -75,6 +61,6 @@ spec:
     io.kompose.service: m7
   ports:
     - protocol: TCP
-      port: 9090  # El puerto accesible desde fuera del clúster
-      targetPort: 0  # Redirige al puerto dinámico del contenedor
-  type: NodePort  # Exposición del servicio usando NodePort
+      port: 9090       
+      targetPort: 8080 
+  type: NodePort
