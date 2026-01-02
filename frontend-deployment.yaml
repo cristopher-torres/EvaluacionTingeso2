@@ -24,7 +24,7 @@ spec:
         - env:
             - name: VITE_API_URL
               value: "http://localhost:30080"
-          image: tu-usuario-docker/frontend:latest
+          image: crisdocker10/frontend:latest
           imagePullPolicy: IfNotPresent
           livenessProbe:
             tcpSocket:

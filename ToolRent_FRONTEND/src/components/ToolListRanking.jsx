@@ -66,9 +66,6 @@ const ToolListRanking = () => {
               // Limpiamos fechas y recargamos
               setStartDate("");
               setEndDate("");
-              // Nota: Como setState es asíncrono, llamamos a getTopToolsRanking sin argumentos
-              // o esperamos al useEffect si usáramos dependencia. 
-              // Para simplicidad, llamamos directo pasando nulls:
               getTopToolsRanking(null, null).then(res => setTools(res.data));
           }}
         >

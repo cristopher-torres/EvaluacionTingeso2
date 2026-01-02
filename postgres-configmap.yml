@@ -4,6 +4,6 @@ metadata:
   name: postgres-init-scripts
 data:
   init.sql: |
-    CREATE DATABASE M7_db;
+    CREATE DATABASE m7_db;
 
-    GRANT ALL PRIVILEGES ON DATABASE M7_db TO keycloak;
+    GRANT ALL PRIVILEGES ON DATABASE m7_db TO keycloak;
