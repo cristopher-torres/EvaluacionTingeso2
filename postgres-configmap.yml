@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-scripts
+data:
+  init.sql: |
+    CREATE DATABASE M7_db;
+
+    GRANT ALL PRIVILEGES ON DATABASE M7_db TO keycloak;
