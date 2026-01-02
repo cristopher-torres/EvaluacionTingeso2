@@ -1,13 +1,7 @@
-server:
-  port: 8761
-
 spring:
   application:
     name: eureka-server
-
-eureka:
-  client:
-    registerWithEureka: false
-    fetchRegistry: false
-  server:
-    waitTimeInMsWhenSyncEmpty: 0
+  cloud:
+    config:
+      enabled: true
+      uri: http://config-server:8081
