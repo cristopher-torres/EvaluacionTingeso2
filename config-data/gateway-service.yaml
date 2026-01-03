@@ -13,7 +13,7 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins: "*"   
+            allowedOrigins: "http://172.21.14.134:30280"  
             allowedMethods:
               - GET
               - POST

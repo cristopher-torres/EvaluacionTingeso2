@@ -60,12 +60,12 @@ services:
       retries: 5
       start_period: 15s
 
-  # Microservicios (ms1 a ms6 - Recuerda agregar ms7 si hace falta)
+  # Microservicios 
   ms1:
     build: ./M1
     container_name: M1
     environment:
-      SERVER_PORT: 0 # CORRECTO SEGÚN PDF
+      SERVER_PORT: 0 
       SPRING_CLOUD_CONFIG_URI: http://config-server:8081
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka
     depends_on:

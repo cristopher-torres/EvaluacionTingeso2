@@ -1,38 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert
-    kompose.version: 1.36.0 (ae2a39403)
-  labels:
-    io.kompose.service: frontend
   name: frontend
+  labels:
+    app: frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: frontend
+      app: frontend
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert
-        kompose.version: 1.36.0 (ae2a39403)
       labels:
-        io.kompose.service: frontend
+        app: frontend
     spec:
       containers:
-        - env:
-            - name: VITE_API_URL
-              value: "http://localhost:30080"
+        - name: frontend
           image: crisdocker10/frontend:latest
           imagePullPolicy: Always
+          env:
+            - name: VITE_API_URL
+              value: "http://localhost:30080"
+          ports:
+            - containerPort: 80
           livenessProbe:
             tcpSocket:
               port: 80
             initialDelaySeconds: 10
             periodSeconds: 10
-          name: frontend
-          ports:
-            - containerPort: 80
-              protocol: TCP
       restartPolicy: Always

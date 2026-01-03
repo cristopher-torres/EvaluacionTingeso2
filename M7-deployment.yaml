@@ -3,30 +3,26 @@ kind: Deployment
 metadata:
   name: m7
   labels:
-    io.kompose.service: m7
+    app: m7
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: m7
+      app: m7
   template:
     metadata:
       labels:
-        io.kompose.service: m7
+        app: m7
     spec:
       containers:
       - name: m7
         image: quay.io/keycloak/keycloak:25.0
-        args: ["start-dev"] # Modo desarrollo (Habilita HTTP y desactiva caché estricta)
+        args: ["start-dev"]
         env:
-        # --- CONFIGURACIÓN DE KEYCLOAK ---
-        # Usuario Admin
         - name: KEYCLOAK_ADMIN
           value: "cristingeso"
         - name: KEYCLOAK_ADMIN_PASSWORD
           value: "rodrigo12"
-        
-        # Conexión a Base de Datos
         - name: KC_DB
           value: "postgres"
         - name: KC_DB_URL
@@ -41,26 +37,22 @@ spec:
             secretKeyRef:
               name: postgres-secret
               key: password
-
-        # Configuración HTTP (Importante para que no pida HTTPS)
         - name: KC_HOSTNAME_STRICT
           value: "false"
         - name: KC_HTTP_ENABLED
           value: "true"
-        
       restartPolicy: Always
-
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
   name: keycloak-service
 spec:
-  selector:
-    io.kompose.service: m7
-  ports:
-    - protocol: TCP
-      port: 9090       
-      targetPort: 8080 
   type: NodePort
+  selector:
+    app: m7
+  ports:
+    - name: http
+      port: 9090        
+      targetPort: 8080  
+      nodePort: 30234  

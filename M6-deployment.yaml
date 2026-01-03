@@ -3,30 +3,38 @@ kind: Deployment
 metadata:
   name: m6
   labels:
-    io.kompose.service: m6
+    app: m6
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: m6
+      app: m6
   template:
     metadata:
       labels:
-        io.kompose.service: m6
+        app: m6
     spec:
       containers:
-        - name: m6
-          image: crisdocker10/m6:latest
-          imagePullPolicy: Always
-          env:
-            - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
-              value: http://eureka-server:8761/eureka
-            - name: PORT
-              value: "0"
-            - name: SPRING_CLOUD_CONFIG_URI
-              value: http://config-server:8081
-            - name: POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
+      - name: m6
+        image: crisdocker10/m6:latest
+        imagePullPolicy: Always
+        env:
+        - name: SPRING_CLOUD_CONFIG_URI
+          value: http://config-server:8081
+        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+          value: http://eureka-server:8761/eureka
+        - name: PORT
+          value: "8080"
       restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: m6
+spec:
+  type: ClusterIP
+  selector:
+    app: m6
+  ports:
+    - port: 8080
+      targetPort: 8080

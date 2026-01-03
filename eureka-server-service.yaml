@@ -3,10 +3,9 @@ kind: Service
 metadata:
   name: eureka-server
 spec:
-  type: ClusterIP  
+  type: ClusterIP
   selector:
     app: eureka-server
   ports:
     - port: 8761
       targetPort: 8761
-  

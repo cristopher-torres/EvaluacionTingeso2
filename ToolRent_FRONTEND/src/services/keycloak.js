@@ -3,9 +3,9 @@ import Keycloak from "keycloak-js";
 
 
 const keycloak = new Keycloak({
-  url: "http://172.23.14.168:30361",  
-  realm: "tingeso-realm",              // Confirmado en tu URL de Keycloak
-  clientId: "toolrent-frontend"        // Asegúrate de que este sea el ID que creaste
+  url: "http://172.21.14.134:30234",  
+  realm: "tingeso-realm",              
+  clientId: "toolrent-frontend"        
 });
 
 export default keycloak;
