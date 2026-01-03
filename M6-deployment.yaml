@@ -3,21 +3,21 @@ kind: Deployment
 metadata:
   name: m6
   labels:
-    app: m6  # Etiqueta estándar (sin kompose)
+    io.kompose.service: m6
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: m6
+      io.kompose.service: m6
   template:
     metadata:
       labels:
-        app: m6
+        io.kompose.service: m6
     spec:
       containers:
         - name: m6
           image: crisdocker10/m6:latest
-          imagePullPolicy: Always 
+          imagePullPolicy: Always
           env:
             - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
               value: http://eureka-server:8761/eureka

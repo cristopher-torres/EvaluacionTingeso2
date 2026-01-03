@@ -10,7 +10,6 @@ data:
     CREATE DATABASE IF NOT EXISTS ms3_db;
     CREATE DATABASE IF NOT EXISTS ms4_db;
     CREATE DATABASE IF NOT EXISTS ms5_db;
-    CREATE DATABASE IF NOT EXISTS ms6_db;
     
     -- Dar permisos al usuario ADMIN sobre todas las bases
     GRANT ALL PRIVILEGES ON *.* TO 'ADMIN'@'%';
