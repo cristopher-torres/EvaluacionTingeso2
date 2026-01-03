@@ -26,6 +26,6 @@ spec:
                 - -f
                 - http://localhost:8081/actuator/health
             failureThreshold: 5
-            initialDelaySeconds: 15
+            initialDelaySeconds: 90
             periodSeconds: 10
             timeoutSeconds: 5

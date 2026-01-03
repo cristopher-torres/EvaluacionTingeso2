@@ -3,9 +3,9 @@ import Keycloak from "keycloak-js";
 
 
 const keycloak = new Keycloak({
-  url: "http://localhost:9090",  // Hardcodeada: URL del servicio de Keycloak
-  realm: "tingeso-realm",       // Nombre del realm en Keycloak
-  clientId: "toolrent-frontend" // ID del cliente en Keycloak
+  url: "http://172.23.14.168:31147",  
+  realm: "tingeso-realm",              // Confirmado en tu URL de Keycloak
+  clientId: "toolrent-frontend"        // Asegúrate de que este sea el ID que creaste
 });
 
 export default keycloak;

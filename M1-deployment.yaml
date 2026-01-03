@@ -18,31 +18,14 @@ spec:
       - name: m1
         image: crisdocker10/m1:latest
         env:
-        - name: SERVER_PORT
-          value: "0"
-        # Configuración Eureka y ConfigServer
         - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
           value: http://eureka-server:8761/eureka
+        - name: PORT
+          value: "0"
         - name: SPRING_CLOUD_CONFIG_URI
           value: http://config-server:8081
-        # Inyección de IP para Eureka 
         - name: POD_IP
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
-          value: "true"
-        # Base de Datos 
-        - name: SPRING_DATASOURCE_URL
-          value: jdbc:mysql://mysql-db:3306/ms1_db?allowPublicKeyRetrieval=true&useSSL=false
-        - name: SPRING_DATASOURCE_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: mysql-user-secret
-              key: username
-        - name: SPRING_DATASOURCE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql-user-secret
-              key: password
       restartPolicy: Always
