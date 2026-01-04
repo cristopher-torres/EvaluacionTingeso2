@@ -19,6 +19,10 @@ spec:
         image: quay.io/keycloak/keycloak:25.0
         args: ["start-dev"]
         env:
+        - name: KC_HOSTNAME_URL
+          value: "http://172.21.14.134:30080"
+        - name: KC_HOSTNAME_ADMIN_URL
+          value: "http://172.21.14.134:30080"
         - name: KEYCLOAK_ADMIN
           value: "cristingeso"
         - name: KEYCLOAK_ADMIN_PASSWORD
@@ -41,6 +45,8 @@ spec:
           value: "false"
         - name: KC_HTTP_ENABLED
           value: "true"
+        - name: KC_PROXY_HEADERS
+          value: "xforwarded" 
       restartPolicy: Always
 ---
 
