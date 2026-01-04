@@ -4,4 +4,4 @@ spring:
   cloud:
     config:
       enabled: true
-      uri: http://config-server:8081e
+      uri: http://config-server:8081
