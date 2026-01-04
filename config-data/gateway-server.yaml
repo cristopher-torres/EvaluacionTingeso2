@@ -56,6 +56,11 @@ spring:
           uri: http://keycloak-service:9090
           predicates:
             - Path=/realms/**,/resources/**,/admin/**,/js/**,/robots.txt
+          filters:
+            - RemoveResponseHeader=Access-Control-Allow-Origin
+            - RemoveResponseHeader=Access-Control-Allow-Credentials
+            - RemoveResponseHeader=Access-Control-Allow-Methods
+            - RemoveResponseHeader=Access-Control-Allow-Headers
 
 eureka:
   client:
