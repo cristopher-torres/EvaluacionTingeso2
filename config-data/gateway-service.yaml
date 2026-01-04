@@ -59,7 +59,7 @@ spring:
         - id: keycloak-route
           uri: http://keycloak-service:9090
           predicates:
-            - Path=/realms/**, /resources/**, /admin/**, /js/**, /robots.txt
+            - Path=/realms/**,/resources/**,/admin/**,/js/**,/robots.txt
 
 eureka:
   client:
