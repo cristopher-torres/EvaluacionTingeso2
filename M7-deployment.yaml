@@ -43,16 +43,16 @@ spec:
           value: "true"
       restartPolicy: Always
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
-  name: keycloak-service
+  name: keycloak-service 
 spec:
-  type: NodePort
+  type: ClusterIP         
   selector:
     app: m7
   ports:
     - name: http
-      port: 9090        
-      targetPort: 8080  
-      nodePort: 30234  
+      port: 9090          
+      targetPort: 8080    

@@ -19,6 +19,10 @@ spec:
         image: crisdocker10/m2:latest
         imagePullPolicy: Always
         env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         - name: SPRING_CLOUD_CONFIG_URI
           value: http://config-server:8081
         - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
