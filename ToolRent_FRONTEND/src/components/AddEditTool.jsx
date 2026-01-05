@@ -54,13 +54,12 @@ const AddEditTool = () => {
 
     try {
       if (id) {
-        // --- MODO EDICIÓN (Separación de responsabilidades) ---
         
         // 1. Actualizar Datos de Inventario (M1)
         // Esto actualiza nombre, categoría, estado.
         await toolService.update(toolDataM1, rut);
 
-        // 2. Actualizar Tarifas (M4) - CUMPLIMIENTO ÉPICA 4
+        // 2. Actualizar Tarifas (M4) 
         // M4 recibe la orden y se comunica internamente con M1 para ajustar los precios
         await rateService.updateToolRate(
             id, 
@@ -75,7 +74,6 @@ const AddEditTool = () => {
         setTimeout(() => navigate("/inventario"), 2500);
 
       } else {
-        // --- MODO CREACIÓN (Todo va a M1 inicialmente) ---
         await toolService.create(toolDataM1, Number(quantity), rut);
         
         setSuccessMessage("Herramienta creada exitosamente ✅");
@@ -179,11 +177,6 @@ const AddEditTool = () => {
             />
           </FormControl>
         )}
-
-        {/* Sección de Tarifas (Gestionada por M4 en Edición) */}
-        <Typography variant="subtitle2" color="primary" sx={{mt: 1}}>
-            Configuración de Tarifas (M4)
-        </Typography>
 
         <FormControl fullWidth>
           <TextField
