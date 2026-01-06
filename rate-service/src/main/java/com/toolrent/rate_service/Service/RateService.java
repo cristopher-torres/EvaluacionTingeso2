@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 @Service
@@ -20,7 +21,7 @@ public class RateService {
     @Autowired
     private RestTemplate restTemplate;
 
-    // URL de M1 (Inventario)
+    // URL de M1
     private final String M1_TOOL_API = "http://M1/api/tools";
 
 
@@ -44,32 +45,31 @@ public class RateService {
                 .orElseThrow(() -> new RuntimeException("No hay tarifas globales configuradas."));
     }
 
-    // --- GESTIÓN DE VALORES POR HERRAMIENTA (RF4.3)  ---
-    // M4 recibe la petición del Admin y ordena a M1 actualizarse.
-
     public void updateToolSpecificRates(Long toolId, double dailyRate, double lateRate, double replacementVal, String rutAdmin) {
+        Tool toolReference = restTemplate.getForObject(M1_TOOL_API + "/getTool/" + toolId, Tool.class);
 
-        // 1. Validar que la herramienta existe en M1
-        Tool tool;
-        try {
-            tool = restTemplate.getForObject(M1_TOOL_API + "/getTool/" + toolId, Tool.class);
-        } catch (Exception e) {
-            throw new RuntimeException("Error conectando con M1-Inventory");
+        if (toolReference == null) {
+            throw new RuntimeException("Herramienta no encontrada");
         }
 
-        if (tool == null) throw new RuntimeException("Herramienta no encontrada");
+        String targetName = toolReference.getName();
 
-        // 2. Modificar los valores monetarios en el objeto
-        tool.setDailyRate(dailyRate);
-        tool.setDailyLateRate(lateRate);
-        tool.setReplacementValue(replacementVal);
+        Tool[] toolsToUpdate = restTemplate.getForObject(M1_TOOL_API + "/getToolsByName/" + targetName, Tool[].class);
 
-        // 3. Enviar la actualización a M1
-        try {
-            // Usamos el endpoint de M1: /updateTool/{toolId}/{rut}
-            restTemplate.put(M1_TOOL_API + "/updateTool/" + toolId + "/" + rutAdmin, tool);
-        } catch (Exception e) {
-            throw new RuntimeException("Error al actualizar tarifas en M1: " + e.getMessage());
+        if (toolsToUpdate == null || toolsToUpdate.length == 0) {
+            return;
         }
+
+        Arrays.stream(toolsToUpdate).forEach(tool -> {
+            tool.setDailyRate(dailyRate);
+            tool.setDailyLateRate(lateRate);
+            tool.setReplacementValue(replacementVal);
+
+            try {
+                restTemplate.put(M1_TOOL_API + "/updateTool/" + tool.getId() + "/" + rutAdmin, tool);
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+        });
     }
 }

@@ -43,9 +43,6 @@ const AddLoan = () => {
       .catch((err) => console.error("Error cargando clientes", err));
   }, []);
 
-  // Filtro visual: Herramientas únicas por nombre para el Dropdown
-  // (Aunque técnicamente deberías seleccionar una unidad específica ID, 
-  //  si tu UX es seleccionar por nombre, asegúrate de tomar el ID de la primera disponible)
   const uniqueTools = tools.reduce((acc, tool) => {
     if (!acc.find((t) => t.name === tool.name)) {
       acc.push(tool);
@@ -57,7 +54,6 @@ const AddLoan = () => {
     e.preventDefault();
 
     // 2. Obtener el RUT del Cliente seleccionado
-    // El backend necesita el RUT del cliente que pide el préstamo, no del empleado logueado.
     const selectedClientObj = clients.find(c => c.id === selectedClientId);
     
     if (!selectedClientObj) {
@@ -71,11 +67,8 @@ const AddLoan = () => {
     const loanData = {
       startDate: startDate,
       scheduledReturnDate: scheduledReturnDate
-      // El backend se encarga de 'createdLoan' y de asociar IDs
     };
 
-    // 4. Llamada al Servicio Actualizado
-    // Firma: createLoan(data, rutCliente, toolId)
     loanService
       .createLoan(loanData, clientRut, selectedToolId)
       .then(() => {
@@ -121,16 +114,14 @@ const AddLoan = () => {
         <FormControl fullWidth>
           <TextField
             select
-            label="Herramienta (ID - Nombre)"
+            label="Herramienta"
             value={selectedToolId}
             onChange={(e) => setSelectedToolId(e.target.value)}
             required
           >
-            {/* Nota: Aquí muestro todas las disponibles. Si usas uniqueTools, 
-                asegúrate de que el ID corresponda a una unidad real disponible */}
-            {tools.map((tool) => (
+            {uniqueTools.map((tool) => (
               <MenuItem key={tool.id} value={tool.id}>
-                {tool.id} - {tool.name} ({tool.brand})
+                {tool.name}
               </MenuItem>
             ))}
           </TextField>
@@ -147,7 +138,7 @@ const AddLoan = () => {
           >
             {clients.map((client) => (
               <MenuItem key={client.id} value={client.id}>
-                {client.rut} - {client.name} {client.lastName}
+                {client.username} - (RUT: {client.rut})
               </MenuItem>
             ))}
           </TextField>

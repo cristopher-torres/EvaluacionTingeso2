@@ -54,13 +54,13 @@ public class ToolsController {
         return ResponseEntity.ok(toolsService.findById(toolId));
     }
 
-    // Endpoint interno para M2: Busca herramienta disponible
+
     @GetMapping("/available/{id}")
     public ResponseEntity<ToolsEntity> getAvailableTool(@PathVariable Long id) {
         return ResponseEntity.ok(toolsService.getAvailableTool(id));
     }
 
-    // Endpoint interno para M2: Cambiar estado
+
     @PutMapping("/status/{id}")
     public ResponseEntity<Void> updateStatus(@PathVariable Long id, @RequestParam String status) {
         if ("PRESTADA".equals(status)) {
@@ -76,5 +76,14 @@ public class ToolsController {
     @GetMapping("/available")
     public List<ToolsEntity> getAvailableTools() {
         return toolsService.getAvailableTools();
+    }
+
+    @GetMapping("/getToolsByName/{name}")
+    public ResponseEntity<List<ToolsEntity>> getToolsByName(@PathVariable String name) {
+        List<ToolsEntity> tools = toolsService.getToolsByName(name);
+        if (tools.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(tools);
     }
 }

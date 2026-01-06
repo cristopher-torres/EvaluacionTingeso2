@@ -21,7 +21,7 @@ public class ToolService {
     private ToolsRepository toolsRepository;
 
     @Autowired
-    private RestTemplate restTemplate; // Bean necesario para comunicación HTTP
+    private RestTemplate restTemplate;
 
     private final String KARDEX_SERVICE_URL = "http://M5/api/kardex";
 
@@ -56,7 +56,7 @@ public class ToolService {
                 firstSaved = savedTool;
             }
 
-            // COMUNICACIÓN CON M5: Enviar movimiento de INGRESO
+            // se conecta con M5
             sendKardexMovement("INGRESO", savedTool.getId(), 1, rut);
         }
 
@@ -70,7 +70,7 @@ public class ToolService {
 
         tool.setStatus(ToolStatus.DADA_DE_BAJA);
 
-        // COMUNICACIÓN CON M5: Enviar movimiento de BAJA
+        // se conecta con M5
         sendKardexMovement("BAJA", tool.getId(), 1, rut);
 
         return toolsRepository.save(tool);
@@ -91,7 +91,7 @@ public class ToolService {
                 .orElseThrow(() -> new RuntimeException("No hay unidades disponibles para préstamo"));
     }
 
-    // Este método será llamado por M2 (Préstamos) para reservar la herramienta
+    // Este metodo se ocupara en m2
     @Transactional
     public void loanTool(Long toolId) {
         ToolsEntity tool = toolsRepository.findById(toolId)
@@ -105,7 +105,7 @@ public class ToolService {
         toolsRepository.save(tool);
     }
 
-    // Este método será llamado por M2 (Préstamos) al devolver
+    // Este metodo se ocupara en m2
     @Transactional
     public void returnTool(Long toolId) {
         ToolsEntity tool = toolsRepository.findById(toolId)
@@ -194,5 +194,9 @@ public class ToolService {
         // Cambiamos el estado
         tool.setStatus(ToolStatus.EN_REPARACION);
         toolsRepository.save(tool);
+    }
+
+    public List<ToolsEntity> getToolsByName(String name) {
+        return toolsRepository.findByName(name);
     }
 }

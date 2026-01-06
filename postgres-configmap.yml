@@ -5,5 +5,4 @@ metadata:
 data:
   init.sql: |
     CREATE DATABASE m7_db;
-
     GRANT ALL PRIVILEGES ON DATABASE m7_db TO keycloak;

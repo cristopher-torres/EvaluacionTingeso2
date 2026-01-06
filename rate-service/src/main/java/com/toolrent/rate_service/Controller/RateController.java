@@ -13,20 +13,16 @@ public class RateController {
     @Autowired
     private RateService rateService;
 
-    // Obtener configuración global actual
     @GetMapping("/global")
     public ResponseEntity<RateEntity> getGlobalRates() {
         return ResponseEntity.ok(rateService.getActiveRates());
     }
 
-    // RF4.1 y RF4.2: Guardar nuevas tarifas globales
     @PostMapping("/global")
     public ResponseEntity<RateEntity> setGlobalRates(@RequestBody RateEntity rates) {
         return ResponseEntity.ok(rateService.updateGlobalRates(rates));
     }
 
-    // RF4.3: Actualizar valores de una herramienta específica
-    // El admin usa este endpoint en M4, y M4 se comunica con M1.
     @PutMapping("/tool/{toolId}")
     public ResponseEntity<String> updateToolRates(
             @PathVariable Long toolId,
