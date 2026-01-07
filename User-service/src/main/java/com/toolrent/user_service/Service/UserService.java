@@ -40,7 +40,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con RUT: " + rut));
     }
 
-    // RF3.2: Cambiar estado a "RESTRINGIDO" (Llamado por M2 cuando hay atrasos)
+    // Cambiar estado a "RESTRINGIDO"
     @Transactional
     public void restrictUserById(Long userId) {
         UserEntity user = findById(userId);
@@ -50,7 +50,7 @@ public class UserService {
         }
     }
 
-    // Reactivar usuario si paga multa (Llamado por M2)
+    // Reactivar usuario si paga multa
     @Transactional
     public void updateUserStatus(Long userId, boolean finePaid) {
         UserEntity user = findById(userId);
@@ -72,7 +72,6 @@ public class UserService {
         user.setPhoneNumber(userDetails.getPhoneNumber());
         user.setStatus(userDetails.getStatus());
 
-        // Si mantienes lógica de login aquí
         user.setUsername(userDetails.getUsername());
         user.setRole(userDetails.getRole());
 

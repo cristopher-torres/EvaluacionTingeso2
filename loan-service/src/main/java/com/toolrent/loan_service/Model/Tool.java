@@ -13,11 +13,10 @@ public class Tool {
     private String model;
     private String brand;
 
-    // Precios necesarios para la lógica del préstamo
-    private double dailyRate;     // Precio por día de arriendo
-    private double dailyLateRate;    // Multa por día de atraso
-    private double replacementValue; // Costo si la pierden/rompen total
-    private double repairValue;      // Costo si la dañan (reparable)
+    private double dailyRate;
+    private double dailyLateRate;
+    private double replacementValue;
+    private double repairValue;
 
-    private String status;           // "DISPONIBLE", "EN_MANTENCION", etc.
+    private String status;
 }

@@ -20,9 +20,9 @@ spec:
         args: ["start-dev"]
         env:
         - name: KC_HOSTNAME_URL
-          value: "http://172.17.252.194:30080"
+          value: "http://172.17.244.157:30080"
         - name: KC_HOSTNAME_ADMIN_URL
-          value: "http://172.17.252.194:30080"
+          value: "http://172.17.244.157:30080"
         - name: KEYCLOAK_ADMIN
           value: "cristingeso"
         - name: KEYCLOAK_ADMIN_PASSWORD

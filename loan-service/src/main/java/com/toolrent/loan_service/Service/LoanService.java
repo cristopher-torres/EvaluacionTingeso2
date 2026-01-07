@@ -5,6 +5,8 @@ import com.toolrent.loan_service.Model.Tool;
 import com.toolrent.loan_service.Model.User;
 import com.toolrent.loan_service.Repository.LoanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +27,7 @@ public class LoanService {
     @Autowired
     private RestTemplate restTemplate;
 
-    private final String USER_API = "http://M3:8001/api/users";
+    private final String USER_API = "http://M3/api/users";
     private final String TOOL_API = "http://M1/api/tools";
     private final String KARDEX_API = "http://M5/api/kardex";
 
@@ -129,12 +131,13 @@ public class LoanService {
 
         LoanEntity savedLoan = loanRepository.save(loan);
 
-        // Registramos la devolución (o baja) en Kardex (M5)
+        // Registramos la devolución en Kardex (M5)
         registerKardexMovement(kardexType, loan.getToolId(), 1, rut, "Devolución Préstamo ID: " + loanId);
 
         return savedLoan;
     }
 
+    @EventListener(ApplicationReadyEvent.class)
     @Scheduled(cron = "0 0 0 * * ?", zone = "America/Santiago")
     @Transactional
     public void updateOverdueLoans() {

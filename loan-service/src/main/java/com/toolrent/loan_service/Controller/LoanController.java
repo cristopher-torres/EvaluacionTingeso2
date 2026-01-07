@@ -18,7 +18,6 @@ public class LoanController {
     private LoanService loanService;
 
     // 1. Crear Préstamo
-    // Cambio clave: Recibimos toolId en la URL para ser explícitos con el ID de la herramienta
     @PostMapping("/createLoan/{rut}/{toolId}")
     public ResponseEntity<LoanEntity> createLoan(
             @PathVariable String rut,
@@ -54,7 +53,7 @@ public class LoanController {
         return ResponseEntity.ok(loanService.getActiveLoans());
     }
 
-    // 5. Pagar Multa (Desbloquea al usuario en M3)
+    // 5. Pagar Multa
     @PutMapping("/{loanId}/finePaid")
     public ResponseEntity<LoanEntity> updateFinePaid(@PathVariable Long loanId, @RequestParam boolean finePaid) {
         LoanEntity updatedLoan = loanService.updateFinePaid(loanId, finePaid);

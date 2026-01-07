@@ -19,14 +19,12 @@ public class LoanEntity {
     @Column(unique = true, nullable = false)
     private Long id;
 
-    // --- RELACIONES POR ID (Microservicios) ---
     @Column(name = "tool_id", nullable = false)
     private Long toolId;
 
     @Column(name = "client_id", nullable = false)
     private Long clientId;
 
-    // --- SNAPSHOTS (Datos copiados para reportes históricos) ---
     private String toolName;
     private String clientRut;
 

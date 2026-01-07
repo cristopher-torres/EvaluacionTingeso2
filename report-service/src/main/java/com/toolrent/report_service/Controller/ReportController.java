@@ -16,7 +16,7 @@ public class ReportController {
     @Autowired
     private ReportService reportService;
 
-    // RF6.1 Reporte de Préstamos Activos
+
     @GetMapping("/active-loans")
     public ResponseEntity<List<Object>> getActiveLoans(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -29,7 +29,6 @@ public class ReportController {
         return ResponseEntity.ok(reportService.getActiveLoansReport(startDate, endDate));
     }
 
-    // RF6.2 Reporte de Clientes Atrasados
     @GetMapping("/overdue")
     public ResponseEntity<List<Object>> getOverdueReport(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -41,7 +40,6 @@ public class ReportController {
         return ResponseEntity.ok(reportService.getOverdueClientsReport(startDate, endDate));
     }
 
-    // RF6.3 Ranking de Herramientas
     @GetMapping("/ranking")
     public ResponseEntity<List<Object>> getRanking(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,

@@ -18,7 +18,6 @@ public class ReportService {
 
     private final String M2_URL = "http://M2/api/loans";
 
-    // RF6.1: Listar préstamos activos y su estado [cite: 115]
     public List<Object> getActiveLoansReport(LocalDate start, LocalDate end) {
         try {
             // Si las fechas son nulas, M2 podría tener un endpoint sin filtros o usamos valores por defecto
@@ -31,7 +30,6 @@ public class ReportService {
         }
     }
 
-    // RF6.2: Listar clientes con atrasos [cite: 115]
     public List<Object> getOverdueClientsReport(LocalDate start, LocalDate end) {
         try {
             // Reutilizamos el endpoint de M2 que filtra atrasos por fecha
@@ -44,14 +42,13 @@ public class ReportService {
         }
     }
 
-    // RF6.3: Reporte de las herramientas más prestadas (Ranking) [cite: 116]
     public List<Object> getTopToolsRanking(LocalDate start, LocalDate end) {
         try {
             String url;
             if (start != null && end != null) {
                 url = M2_URL + "/topToolsByDate?startDate=" + start + "&endDate=" + end;
             } else {
-                url = M2_URL + "/topTools"; // Histórico total
+                url = M2_URL + "/topTools";
             }
 
             Object[] ranking = restTemplate.getForObject(url, Object[].class);

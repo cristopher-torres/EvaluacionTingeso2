@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: m1
   labels:
-    app: m1  # Etiqueta corregida
+    app: m1
 spec:
   replicas: 1
   selector:
@@ -25,10 +25,8 @@ spec:
               fieldPath: status.podIP
         - name: SPRING_CLOUD_CONFIG_URI
           value: http://config-server:8081
-        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
-          value: http://eureka-server:8761/eureka
-        - name: PORT
-          value: "8080"
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://eureka-server:8761/eureka/
       restartPolicy: Always
 ---
 apiVersion: v1

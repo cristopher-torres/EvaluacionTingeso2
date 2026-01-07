@@ -29,7 +29,7 @@ public class KardexEntity {
     private Long toolId;
 
     @Column(name = "loan_id")
-    private Long loanId; // Referencia opcional al préstamo
+    private Long loanId;
 
     private String userRut;
 
