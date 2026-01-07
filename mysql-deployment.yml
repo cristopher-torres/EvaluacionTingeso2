@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql-db  # CRUCIAL: M1 busca este nombre
+  name: mysql-db  
   labels:
     app: mysql
 spec:
@@ -10,7 +10,6 @@ spec:
     targetPort: 3306
   selector:
     app: mysql
-  # clusterIP: None  <-- ELIMINADO para tener IP estable y arreglar "Connection refused"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -33,15 +32,11 @@ spec:
       - image: mysql:8.1 
         name: mysql
         env:
-        # 1. Contraseña de Root (Desde tu mysql-root-secret)
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
               name: mysql-root-secret 
               key: password
-        
-        # 2. Creación del Usuario ADMIN (Desde tu mysql-user-secret)
-        # Esto es lo que faltaba para que M1 pueda entrar
         - name: MYSQL_USER
           valueFrom:
             secretKeyRef:
